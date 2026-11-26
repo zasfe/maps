@@ -22,12 +22,12 @@
     .panel-heading h2 { font-size: 1.1rem; }
     #school-count, footer { color: #64748b; font-size: .82rem; }
     #school-type { padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #172033; }
-    .table-wrap { max-height: 520px; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .86rem; }
-    th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e8edf3; vertical-align: top; }
-    th { position: sticky; top: 0; background: white; color: #64748b; font-size: .75rem; z-index: 1; }
+    .table-wrap { overflow: visible; }
+    table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+    th, td { padding: 7px 6px; text-align: left; border-bottom: 1px solid #e8edf3; vertical-align: middle; }
+    th { position: sticky; top: 0; background: white; color: #64748b; font-size: .7rem; z-index: 1; }
     tbody tr { cursor: pointer; } tbody tr:hover { background: #eff6ff; }
-    td.school-name-cell { font-weight: 700; } td.school-meta-cell { color: #64748b; font-size: .76rem; }
+    td.school-name-cell { font-weight: 700; word-break: keep-all; } td.school-meta-cell { color: #64748b; font-size: .72rem; white-space: nowrap; }
     .school-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
     .school-meta { color: #475569; font-size: .85rem; }
     .school-links { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -35,7 +35,7 @@
     .legend { background: white; padding: 9px 11px; border-radius: 6px; box-shadow: 0 1px 6px #0003; font-size: .8rem; line-height: 1.45; }
     .legend strong { display: block; margin-bottom: 3px; }
     footer { margin-top: 14px; }
-    @media (max-width: 850px) { .shell { padding: 14px; } .dashboard { grid-template-columns: 1fr; } #map { height: 420px; min-height: 0; } .table-wrap { max-height: 420px; } }
+    @media (max-width: 850px) { .shell { padding: 14px; } .dashboard { grid-template-columns: 1fr; } #map { height: 420px; min-height: 0; } }
   </style>
 </head>
 <body>
@@ -129,7 +129,7 @@
       filtered.forEach(({ school, index }) => {
         const item = document.createElement('tr');
         item.tabIndex = 0;
-        item.innerHTML = `<td>${index + 1}</td><td class="school-name-cell">${school.name}</td><td class="school-meta-cell">${school.type}<br>${school.address}</td>`;
+        item.innerHTML = `<td>${index + 1}</td><td class="school-name-cell" title="${school.address}">${school.name}</td><td class="school-meta-cell" title="${school.address}">${school.type}</td>`;
         const openSchool = () => {
           map.setView([school.lat, school.lon], 16);
           markers[index].openPopup();
