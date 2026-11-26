@@ -15,9 +15,9 @@
     .eyebrow { margin: 0 0 6px; color: #2563eb; font-size: .75rem; font-weight: 800; letter-spacing: .12em; }
     h1, h2 { margin: 0; } header { margin-bottom: 18px; }
     header p:last-child { color: #64748b; }
-    .dashboard { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); gap: 18px; }
-    #map { min-height: 560px; border-radius: 16px; box-shadow: 0 8px 24px #17203318; }
-    .panel { min-width: 0; padding: 16px; background: white; border-radius: 16px; box-shadow: 0 8px 24px #17203312; }
+    .dashboard { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); gap: 18px; align-items: start; }
+    #map { height: 560px; min-height: 0; width: 100%; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 24px #17203318; }
+    .panel { min-width: 0; min-height: 0; padding: 16px; background: white; border-radius: 16px; box-shadow: 0 8px 24px #17203312; }
     .panel-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 12px; }
     .panel-heading h2 { font-size: 1.1rem; }
     #school-count, footer { color: #64748b; font-size: .82rem; }
@@ -35,7 +35,7 @@
     .legend { background: white; padding: 9px 11px; border-radius: 6px; box-shadow: 0 1px 6px #0003; font-size: .8rem; line-height: 1.45; }
     .legend strong { display: block; margin-bottom: 3px; }
     footer { margin-top: 14px; }
-    @media (max-width: 850px) { .shell { padding: 14px; } .dashboard { grid-template-columns: 1fr; } #map { min-height: 420px; } .table-wrap { max-height: 420px; } }
+    @media (max-width: 850px) { .shell { padding: 14px; } .dashboard { grid-template-columns: 1fr; } #map { height: 420px; min-height: 0; } .table-wrap { max-height: 420px; } }
   </style>
 </head>
 <body>
@@ -147,6 +147,8 @@
 
     typeSelect.addEventListener('change', event => renderSchools(event.target.value));
     renderSchools('전체');
+    window.addEventListener('resize', () => map.invalidateSize());
+    requestAnimationFrame(() => map.invalidateSize());
     const legend = L.control({ position: 'topright' });
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'legend');
