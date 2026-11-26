@@ -141,6 +141,10 @@
         item.tabIndex = 0;
         item.innerHTML = `<td>${index + 1}</td><td class="school-name-cell" title="${school.address}">${school.name}</td><td class="school-meta-cell" title="${school.address}">${school.type}</td>`;
         const openSchool = () => {
+          markers.forEach((marker, markerIndex) => {
+            if (markerIndex === index) marker.addTo(map);
+            else map.removeLayer(marker);
+          });
           markers[index].openPopup({ autoPan: false });
         };
         item.addEventListener('click', openSchool);
