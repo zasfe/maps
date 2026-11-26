@@ -17,6 +17,8 @@
     #map { min-height: 0; width: 100%; }
     #school-list { min-height: 0; overflow: auto; background: #fff; border-right: 1px solid #dbe3ec; }
     .list-title { position: sticky; top: 0; padding: 12px 14px 9px; background: #fff; border-bottom: 1px solid #e2e8f0; font-weight: 700; z-index: 1; }
+    .filter-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .8rem; font-weight: 400; }
+    #school-type { flex: 1; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #172033; }
     .school-item { display: block; width: 100%; padding: 10px 14px; border: 0; border-bottom: 1px solid #eef2f7; background: #fff; text-align: left; cursor: pointer; color: #172033; }
     .school-item:hover, .school-item:focus { background: #eaf4fb; outline: none; }
     .school-item strong { display: block; font-size: .9rem; }
@@ -43,7 +45,17 @@
   </header>
   <div id="content">
     <aside id="school-list" aria-label="의정부시 고등학교 목록">
-      <div class="list-title">학교 목록 (16개교)</div>
+      <div class="list-title">
+        학교 목록 <span id="school-count">(16개교)</span>
+        <label class="filter-row" for="school-type">학교 유형
+          <select id="school-type">
+            <option value="전체">전체</option>
+            <option value="남학교">남학교</option>
+            <option value="여학교">여학교</option>
+            <option value="공학">공학</option>
+          </select>
+        </label>
+      </div>
     </aside>
     <main id="map" aria-label="의정부시 고등학교 지도"></main>
   </div>
@@ -77,11 +89,9 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    const bounds = [];
     const markers = [];
     schools.forEach((school, index) => {
       const point = [school.lat, school.lon];
-      bounds.push(point);
       const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' ' + school.address)}`;
       const osmUrl = `https://www.openstreetmap.org/?mlat=${school.lat}&mlon=${school.lon}#map=18/${school.lat}/${school.lon}`;
       const marker = L.marker(point).addTo(map);
@@ -98,19 +108,35 @@
     });
 
     const list = document.getElementById('school-list');
-    schools.forEach((school, index) => {
-      const item = document.createElement('button');
-      item.type = 'button';
-      item.className = 'school-item';
-      item.innerHTML = `<strong>${index + 1}. ${school.name}</strong><span>${school.type}</span><span>${school.address}</span>`;
-      item.addEventListener('click', () => {
-        map.setView([school.lat, school.lon], 16);
-        markers[index].openPopup();
-      });
-      list.appendChild(item);
-    });
+    const count = document.getElementById('school-count');
+    const typeSelect = document.getElementById('school-type');
 
-    map.fitBounds(bounds, { padding: [28, 28] });
+    function renderSchools(filter) {
+      const filtered = filter === '전체'
+        ? schools.map((school, index) => ({ school, index }))
+        : schools.map((school, index) => ({ school, index })).filter(({ school }) => school.type.includes(filter));
+      list.querySelectorAll('.school-item').forEach(item => item.remove());
+      count.textContent = `(${filtered.length}개교)`;
+      filtered.forEach(({ school, index }) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'school-item';
+        item.innerHTML = `<strong>${index + 1}. ${school.name}</strong><span>${school.type}</span><span>${school.address}</span>`;
+        item.addEventListener('click', () => {
+          map.setView([school.lat, school.lon], 16);
+          markers[index].openPopup();
+        });
+        list.appendChild(item);
+      });
+      markers.forEach((marker, index) => {
+        const visible = filtered.some(({ index: schoolIndex }) => schoolIndex === index);
+        if (visible) marker.addTo(map); else map.removeLayer(marker);
+      });
+      if (filtered.length) map.fitBounds(filtered.map(({ school }) => [school.lat, school.lon]), { padding: [28, 28] });
+    }
+
+    typeSelect.addEventListener('change', event => renderSchools(event.target.value));
+    renderSchools('전체');
     const legend = L.control({ position: 'topright' });
     legend.onAdd = () => {
       const div = L.DomUtil.create('div', 'legend');
