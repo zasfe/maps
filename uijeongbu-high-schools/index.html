@@ -92,7 +92,8 @@
       { name: "의정부공업고등학교", type: "공립 · 남녀공학 · 특성화고", address: "경기도 의정부시 가능로 136번길 29", lat: 37.7461133, lon: 127.0465323 }
     ];
 
-    const map = L.map('map', { zoomControl: true }).setView([37.745, 127.06], 12);
+    const SINGOK_CENTER = [37.7374524, 127.0600135];
+    const map = L.map('map', { zoomControl: true }).setView(SINGOK_CENTER, 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -131,8 +132,7 @@
         item.tabIndex = 0;
         item.innerHTML = `<td>${index + 1}</td><td class="school-name-cell" title="${school.address}">${school.name}</td><td class="school-meta-cell" title="${school.address}">${school.type}</td>`;
         const openSchool = () => {
-          map.setView([school.lat, school.lon], 16);
-          markers[index].openPopup();
+          markers[index].openPopup({ autoPan: false });
         };
         item.addEventListener('click', openSchool);
         item.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openSchool(); } });
@@ -142,9 +142,13 @@
         const visible = filtered.some(({ index: schoolIndex }) => schoolIndex === index);
         if (visible) marker.addTo(map); else map.removeLayer(marker);
       });
-      if (filtered.length) map.fitBounds(filtered.map(({ school }) => [school.lat, school.lon]), { padding: [28, 28] });
+      if (filtered.length) map.setView(SINGOK_CENTER, fixedZoom);
     }
 
+    const allBounds = L.latLngBounds(schools.map(school => [school.lat, school.lon]));
+    map.fitBounds(allBounds, { padding: [28, 28] });
+    const fixedZoom = Math.max(10, map.getZoom() - 1);
+    map.setView(SINGOK_CENTER, fixedZoom);
     typeSelect.addEventListener('change', event => renderSchools(event.target.value));
     renderSchools('전체');
     window.addEventListener('resize', () => map.invalidateSize());
