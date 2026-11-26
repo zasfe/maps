@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>의정부시 고등학교 스트리트맵</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQ3E9vQJ3y2wK5r5s6v7fHc4aR4M3mE=" crossorigin="">
+  <style>
+    :root { color-scheme: light; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    html, body { height: 100%; margin: 0; }
+    body { display: grid; grid-template-rows: auto 1fr; background: #f8fafc; color: #172033; }
+    header { padding: 14px 18px; background: #0f3d5e; color: white; box-shadow: 0 2px 10px #0002; z-index: 1000; }
+    h1 { margin: 0 0 4px; font-size: 1.25rem; }
+    .subtitle { margin: 0; font-size: .88rem; opacity: .88; }
+    #map { min-height: 0; width: 100%; }
+    .leaflet-popup-content { line-height: 1.55; min-width: 220px; }
+    .school-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .school-meta { color: #475569; font-size: .85rem; }
+    .school-links { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .school-links a { color: #075985; }
+    .legend { background: white; padding: 9px 11px; border-radius: 6px; box-shadow: 0 1px 6px #0003; font-size: .8rem; line-height: 1.45; }
+    .legend strong { display: block; margin-bottom: 3px; }
+    .note { position: absolute; bottom: 10px; left: 10px; z-index: 900; background: #ffffffdd; padding: 6px 9px; border-radius: 5px; font-size: .72rem; color: #475569; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>의정부시 고등학교 스트리트맵</h1>
+    <p class="subtitle">의정부 소재 고등학교 16개교 · 마커를 클릭하면 학교 정보와 길찾기 링크를 확인할 수 있습니다.</p>
+  </header>
+  <main id="map" aria-label="의정부시 고등학교 지도"></main>
+  <div class="note">지도 © OpenStreetMap contributors · 학교 목록: 공개 교육정보 기준</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const schools = [
+      { name: "의정부고등학교", type: "공립 · 남학교", address: "경기도 의정부시 녹양로 29", lat: 37.7545848, lon: 127.0310564 },
+      { name: "의정부여자고등학교", type: "공립 · 여학교", address: "경기도 의정부시 신흥로365번길 10", lat: 37.7496476, lon: 127.0412921 },
+      { name: "경민고등학교", type: "사립 · 남녀공학", address: "경기도 의정부시 서부로 545", lat: 37.7472963, lon: 127.0249839 },
+      { name: "송현고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 용민로 159", lat: 37.7436714, lon: 127.0909098 },
+      { name: "호원고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 망월로 56", lat: 37.7053485, lon: 127.0444832 },
+      { name: "상우고등학교", type: "사립 · 남녀공학", address: "경기도 의정부시 범골로 79", lat: 37.7314563, lon: 127.0375154 },
+      { name: "부용고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 오목로 96", lat: 37.7362596, lon: 127.0927056 },
+      { name: "의정부광동고등학교", type: "사립 · 남녀공학", address: "경기도 의정부시 서부로 691", lat: 37.7540994, lon: 127.0366979 },
+      { name: "효자고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 부용로 165", lat: 37.7529272, lon: 127.0764186 },
+      { name: "경기북과학고등학교", type: "공립 · 남녀공학 · 과학고", address: "경기도 의정부시 체육로135번길 32", lat: 37.7587157, lon: 127.0197308 },
+      { name: "발곡고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 동일로454번길 150", lat: 37.7284825, lon: 127.0675133 },
+      { name: "경민IT고등학교", type: "사립 · 남녀공학 · 특성화고", address: "경기도 의정부시 서부로 545", lat: 37.7467719, lon: 127.0245403 },
+      { name: "동국대학교사범대학부속영석고등학교", type: "사립 · 남학교", address: "경기도 의정부시 시민로 363", lat: 37.7367429, lon: 127.0742411 },
+      { name: "경민비즈니스고등학교", type: "사립 · 여학교 · 특성화고", address: "경기도 의정부시 서부로 545", lat: 37.7454800, lon: 127.0238486 },
+      { name: "송양고등학교", type: "공립 · 남녀공학", address: "경기도 의정부시 송양로 6", lat: 37.7530424, lon: 127.1066845 },
+      { name: "의정부공업고등학교", type: "공립 · 남녀공학 · 특성화고", address: "경기도 의정부시 가능로 136번길 29", lat: 37.7461133, lon: 127.0465323 }
+    ];
+
+    const map = L.map('map', { zoomControl: true }).setView([37.745, 127.06], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const bounds = [];
+    schools.forEach((school, index) => {
+      const point = [school.lat, school.lon];
+      bounds.push(point);
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' ' + school.address)}`;
+      const osmUrl = `https://www.openstreetmap.org/?mlat=${school.lat}&mlon=${school.lon}#map=18/${school.lat}/${school.lon}`;
+      const marker = L.marker(point).addTo(map);
+      marker.bindPopup(`
+        <div class="school-name">${index + 1}. ${school.name}</div>
+        <div class="school-meta">${school.type}</div>
+        <div class="school-meta">${school.address}</div>
+        <div class="school-links">
+          <a href="${mapUrl}" target="_blank" rel="noopener">Google 지도</a>
+          <a href="${osmUrl}" target="_blank" rel="noopener">OSM 위치</a>
+        </div>
+      `);
+    });
+
+    map.fitBounds(bounds, { padding: [28, 28] });
+    const legend = L.control({ position: 'topright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = `<strong>표시 학교</strong>${schools.length}개교`;
+      return div;
+    };
+    legend.addTo(map);
+  </script>
+</body>
+</html>
